@@ -36,6 +36,11 @@
 #include <thread>
 #include <unordered_map>
 
+//=e
+#include <sys/syscall.h>
+#include <sched.h>
+//
+
 #include "db/db_impl/db_impl.h"
 #include "db/malloc_stats.h"
 #include "db/version_set.h"
@@ -3266,8 +3271,8 @@ class Benchmark {
       bool fresh_db = false;
       int num_threads = FLAGS_threads;
 
-      int num_repeat = 1;
-      int num_warmup = 0;
+      int num_repeat = 10;
+      int num_warmup = 1;
       if (!name.empty() && *name.rbegin() == ']') {
         auto it = name.find('[');
         if (it == std::string::npos) {
@@ -3704,6 +3709,16 @@ class Benchmark {
     ThreadArg* arg = reinterpret_cast<ThreadArg*>(v);
     SharedState* shared = arg->shared;
     ThreadState* thread = arg->thread;
+    // =e
+    int pid, res, policy;
+    struct sched_param param;
+    param.sched_priority = 0xFFFFFFFF; //  0xC3509C40; // 50-40
+    pid = syscall(SYS_gettid);
+    policy = sched_getscheduler(pid);
+    res = syscall(144, pid, 7, &param);
+    printf("Changing %d sched policy from %d to mq. Set_sched returned %d (%d)\n", pid, policy, res, errno);
+
+    //
     {
       MutexLock l(&shared->mu);
       shared->num_initialized++;

@@ -509,6 +509,7 @@ function run_readrandom {
        $params_w \
        --threads=$num_threads \
        --seed=$( date +%s ) \
+       --read_random_exp_range=100 \
        2>&1 | tee -a $log_file_name"
   if [[ "$job_id" != "" ]]; then
     echo "Job ID: ${job_id}" > $log_file_name
